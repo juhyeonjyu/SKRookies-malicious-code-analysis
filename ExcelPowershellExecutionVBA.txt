@@ -1,0 +1,100 @@
+' 엑셀 VBA 매크로 코드 - 순차 실행 보장
+Sub PowerShell연동테스트()
+    Dim shell As Object
+    Dim psCommand As String
+    Dim exitCode As Long
+    
+    ' Shell 객체 생성
+    Set shell = CreateObject("WScript.Shell")
+    
+    On Error GoTo ErrorHandler
+    
+    ' 1단계: 첫 번째 PowerShell 명령 실행
+    MsgBox "1단계: PowerShell 연동 테스트를 시작합니다.", vbInformation, "단계 1"
+    
+    psCommand = "powershell.exe -ExecutionPolicy Bypass -WindowStyle Normal -Command ""Write-Host '1단계 실행 중...' -ForegroundColor Green; Start-Sleep 2; Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('1단계: PowerShell 연동 테스트 성공!`n현재 시간: ' + (Get-Date).ToString(), 'Excel-PowerShell 연동 - 1단계', 'OK', 'Information')"""
+    
+    exitCode = shell.Run(psCommand, 1, True)  ' True = 완료까지 대기
+    
+    If exitCode = 0 Then
+        MsgBox "1단계 완료되었습니다.", vbInformation, "1단계 완료"
+    End If
+    
+    ' 2단계: 두 번째 PowerShell 명령 실행
+    MsgBox "2단계: 시스템 정보를 가져옵니다.", vbInformation, "단계 2"
+    
+    psCommand = "powershell.exe -ExecutionPolicy Bypass -WindowStyle Normal -Command ""Write-Host '2단계 실행 중...' -ForegroundColor Blue; $info = '컴퓨터: ' + $env:COMPUTERNAME + '`n사용자: ' + $env:USERNAME; Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('2단계: 시스템 정보`n' + $info, 'Excel-PowerShell 연동 - 2단계', 'OK', 'Information')"""
+    
+    exitCode = shell.Run(psCommand, 1, True)  ' True = 완료까지 대기
+    
+    If exitCode = 0 Then
+        MsgBox "2단계 완료되었습니다.", vbInformation, "2단계 완료"
+    End If
+    
+    ' 3단계: 최종 완료 메시지
+    MsgBox "모든 PowerShell 스크립트가 순서대로 성공적으로 실행되었습니다!", vbInformation, "전체 완료"
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "PowerShell 실행 중 오류가 발생했습니다: " & Err.Description, vbCritical, "오류"
+End Sub
+
+' 간단한 버전 (PowerShell 파일 순차 실행)
+Sub PowerShell파일순차실행()
+    Dim shell As Object
+    Dim psFilePath As String
+    Dim exitCode As Long
+    
+    ' PowerShell 파일 경로 (데스크톱에 있다고 가정)
+    psFilePath = Environ("USERPROFILE") & "\Desktop\test_script.ps1"
+    
+    Set shell = CreateObject("WScript.Shell")
+    
+    On Error GoTo ErrorHandler
+    
+    MsgBox "PowerShell 파일 실행을 시작합니다: " & vbCrLf & psFilePath, vbInformation, "실행 시작"
+    
+    ' PowerShell 파일 실행 (완료까지 대기)
+    exitCode = shell.Run("powershell.exe -ExecutionPolicy Bypass -WindowStyle Normal -File """ & psFilePath & """", 1, True)
+    
+    If exitCode = 0 Then
+        MsgBox "PowerShell 파일이 성공적으로 완료되었습니다!", vbInformation, "실행 완료"
+    Else
+        MsgBox "PowerShell 파일 실행이 완료되었지만 종료 코드: " & exitCode, vbExclamation, "실행 완료"
+    End If
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "PowerShell 파일 실행 중 오류: " & Err.Description, vbCritical, "오류"
+End Sub
+
+' 여러 PowerShell 명령을 순차적으로 실행하는 함수
+Sub 여러PowerShell순차실행()
+    Dim shell As Object
+    Dim commands() As String
+    Dim i As Integer
+    Dim exitCode As Long
+    
+    Set shell = CreateObject("WScript.Shell")
+    
+    ' 실행할 PowerShell 명령들을 배열에 저장
+    ReDim commands(2)
+    commands(0) = "powershell.exe -ExecutionPolicy Bypass -WindowStyle Normal -Command ""Write-Host '명령 1 실행 중...' -ForegroundColor Red; Start-Sleep 2; Write-Host '명령 1 완료!' -ForegroundColor Green"""
+    commands(1) = "powershell.exe -ExecutionPolicy Bypass -WindowStyle Normal -Command ""Write-Host '명령 2 실행 중...' -ForegroundColor Yellow; Start-Sleep 2; Write-Host '명령 2 완료!' -ForegroundColor Green"""
+    commands(2) = "powershell.exe -ExecutionPolicy Bypass -WindowStyle Normal -Command ""Write-Host '명령 3 실행 중...' -ForegroundColor Cyan; Start-Sleep 2; Write-Host '모든 명령 완료!' -ForegroundColor Magenta"""
+    
+    ' 각 명령을 순차적으로 실행
+    For i = 0 To UBound(commands)
+        MsgBox "명령 " & (i + 1) & "을(를) 실행합니다.", vbInformation, "진행 상황"
+        
+        exitCode = shell.Run(commands(i), 1, True)  ' True = 완료까지 대기
+        
+        If exitCode = 0 Then
+            MsgBox "명령 " & (i + 1) & " 완료!", vbInformation, "단계 완료"
+        End If
+    Next i
+    
+    MsgBox "모든 PowerShell 명령이 순서대로 완료되었습니다!", vbInformation, "전체 완료"
+End Sub

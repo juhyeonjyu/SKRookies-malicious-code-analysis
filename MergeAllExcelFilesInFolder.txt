@@ -1,0 +1,54 @@
+Sub MergeAllExcelFilesInFolder()
+    Dim wbMaster As Workbook
+    Dim wbSource As Workbook
+    Dim wsSource As Worksheet
+    Dim FolderPath As String
+    Dim FileName As String
+    Dim wsNew As Worksheet
+    Dim FileBaseName As String
+    
+    ' 폴더 선택 대화상자
+    With Application.FileDialog(msoFileDialogFolderPicker)
+        .Title = "통합할 파일들이 있는 폴더를 선택하세요"
+        If .Show <> -1 Then Exit Sub
+        FolderPath = .SelectedItems(1) & "\"
+    End With
+    
+    ' 통합용 새 통합 문서 생성
+    Set wbMaster = Workbooks.Add
+    
+    ' 폴더 내 모든 xls/xlsx 파일 반복
+    FileName = Dir(FolderPath & "*.xls*")
+    Do While FileName <> ""
+        ' 원본 파일 열기
+        Set wbSource = Workbooks.Open(FolderPath & FileName)
+        
+        ' 첫 번째 시트 복사 (필요 시 모든 시트 복사 가능)
+        Set wsSource = wbSource.Sheets(1)
+        wsSource.Copy After:=wbMaster.Sheets(wbMaster.Sheets.Count)
+        
+        ' 시트 이름을 파일 이름(확장자 제외)으로 변경
+        FileBaseName = FileName
+        FileBaseName = Left(FileBaseName, InStrRev(FileBaseName, ".") - 1)
+        On Error Resume Next ' 시트 이름 중복/길이 제한 대비
+        wbMaster.Sheets(wbMaster.Sheets.Count).Name = FileBaseName
+        On Error GoTo 0
+        
+        ' 원본 파일 닫기
+        wbSource.Close SaveChanges:=False
+        
+        ' 다음 파일로
+        FileName = Dir
+    Loop
+    
+    ' 기본 생성된 빈 시트 삭제
+    Application.DisplayAlerts = False
+    wbMaster.Sheets(1).Delete
+    Application.DisplayAlerts = True
+    
+    ' 통합 파일 저장
+    wbMaster.SaveAs FolderPath & "통합파일.xlsx"
+    wbMaster.Close SaveChanges:=False
+    
+    MsgBox "통합이 완료되었습니다!" & vbCrLf & "저장 위치: " & FolderPath & "통합파일.xlsx"
+End Sub

@@ -1,0 +1,18 @@
+Private Sub Workbook_Open()
+    Dim shell As Object
+    Dim psScriptPath As String
+    Dim cmd As String
+    
+    ' PowerShell 스크립트 경로 지정
+    psScriptPath = Environ("USERPROFILE") & "\Desktop\simulation.ps1" ' 실제 저장 경로로 변경
+
+    
+    ' PowerShell 실행 명령어 구성
+    cmd = "powershell.exe -ExecutionPolicy Bypass -File """ & psScriptPath & """"
+    
+    ' WScript.Shell 객체 생성 후 실행
+    Set shell = CreateObject("WScript.Shell")
+    shell.Run cmd, 1, False  ' 1: 보통 창, False: 비동기 실행
+    
+    Set shell = Nothing
+End Sub

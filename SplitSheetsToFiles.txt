@@ -1,0 +1,31 @@
+Sub SplitSheetsToFiles()
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim FolderPath As String
+    Dim NewFolder As String
+    Dim SavePath As String
+    
+    ' 현재 통합 파일 참조
+    Set wb = ThisWorkbook
+    
+    ' 통합 파일이 저장된 경로
+    FolderPath = wb.Path & "\"
+    
+    ' 저장할 새 폴더 경로
+    NewFolder = FolderPath & "분리된_시트_파일\"
+    
+    ' 폴더 없으면 생성
+    If Dir(NewFolder, vbDirectory) = "" Then
+        MkDir NewFolder
+    End If
+    
+    ' 각 시트를 개별 파일로 저장
+    For Each ws In wb.Sheets
+        ws.Copy ' 시트를 새 통합문서로 복사
+        SavePath = NewFolder & ws.Name & ".xlsx"
+        ActiveWorkbook.SaveAs Filename:=SavePath, FileFormat:=xlOpenXMLWorkbook
+        ActiveWorkbook.Close SaveChanges:=False
+    Next ws
+    
+    MsgBox "모든 시트를 개별 파일로 저장했습니다!" & vbCrLf & "저장 위치: " & NewFolder
+End Sub

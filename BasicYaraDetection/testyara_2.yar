@@ -3,7 +3,8 @@ import "pe"
 rule Detect_Custom_PE_File
 {
     meta:
-        description = "Detects a PE file with a .text section and size less than 5KB"
+	title = "testyara"
+        desc = "Detects a PE file with a .text section and size less than 5KB"
         author = "Grok"
         date = "2025-09-01"
 
